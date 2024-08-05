@@ -1,0 +1,8 @@
+VARint x = 10;
+VARint y = 4;
+VARint z;
+z = y + x;
+VARstr s = "stringlit";
+DISPLAYnumeric z;
+DISPLAYstring s;
+END
