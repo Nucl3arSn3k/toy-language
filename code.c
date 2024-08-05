@@ -9,6 +9,6 @@ int z;
 z =(y + x);
 char s[]="stringlit";
 printf("%d\n", z);
-printf("%d\n", s);
+printf("%s\n", s);
     return 0;
 }

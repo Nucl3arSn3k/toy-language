@@ -168,7 +168,7 @@ impl Parser {
             &TokenType::Semicolon,
             "Expected ';' after display statement.",
         )?;
-        Ok(ASTNode::DisplayStatement(
+        Ok(ASTNode::DisplayIntStatement(
             identifier.lexeme.clone(),
             display_token.line,
         ))
@@ -184,7 +184,7 @@ impl Parser {
             &TokenType::Semicolon,
             "Expected ';' after display statement.",
         )?;
-        Ok(ASTNode::DisplayStatement(
+        Ok(ASTNode::DisplayStringStatement(
             identifier.lexeme.clone(),
             display_token.line,
         ))
