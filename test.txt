@@ -1,0 +1,4 @@
+Token { token_type: If, lexeme: "IF", literal: Some(String("IF")), line: 7, var_type: None }, 
+Token { token_type: Identifier, lexeme: "z", literal: Some(String("z")), line: 7, var_type: None }, 
+Token { token_type: Number, lexeme: "5", literal: Some(Integer(5)), line: 7, var_type: None }, 
+Token { token_type: Then, lexeme: "THEN", literal: Some(String("THEN")), line: 7, var_type: None }

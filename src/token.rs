@@ -1,10 +1,10 @@
 use std::borrow::Borrow;
 use std::collections::HashMap;
+use std::fmt;
 use std::iter::Peekable;
 use std::ops::DerefMut;
 use std::str::Chars;
 use std::string;
-use std::fmt;
 
 use regex::Regex;
 
@@ -13,8 +13,8 @@ const ANONYMOUS_FUNCTION_NAME: &str = "anonymous";
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TokenType {
     Identifier,
-    int_var,
-    str_var,
+    IntVar,
+    StrVar,
     String,
     Number,
     Plus,
@@ -31,6 +31,15 @@ pub enum TokenType {
     EOF,
     DisplayStr,
     DisplayInt,
+    If,
+    Then,
+    Else,
+    Elif,
+    Endifelseblock,
+    LessThanOrEqual,
+    GreaterThanOrEqual,
+    LessThan,
+    GreaterThan,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -50,8 +59,7 @@ impl fmt::Display for Type {
     }
 }
 
-
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 enum Literal {
     Integer(i64),
     Float(f64),
@@ -60,7 +68,7 @@ enum Literal {
     Null,
 }
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct Token {
     pub token_type: TokenType,
     pub lexeme: String,
@@ -104,15 +112,29 @@ impl<'a> Lexer<'a> {
             keywords: HashMap::new(),
             types: HashMap::new(),
         };
-        lexer.keywords.insert("VARint".to_string(), TokenType::int_var);
-        lexer.keywords.insert("VARstr".to_string(), TokenType::str_var);
-        lexer.keywords.insert("DISPLAY".to_string(), TokenType::Display);
-        lexer.keywords.insert("DISPLAYnumeric".to_string(), TokenType::DisplayInt);
-        lexer.keywords.insert("DISPLAYstring".to_string(), TokenType::DisplayStr);
+        lexer
+            .keywords
+            .insert("VARint".to_string(), TokenType::IntVar);
+        lexer
+            .keywords
+            .insert("VARstr".to_string(), TokenType::StrVar);
+        lexer
+            .keywords
+            .insert("DISPLAY".to_string(), TokenType::Display);
+        lexer
+            .keywords
+            .insert("DISPLAYnumeric".to_string(), TokenType::DisplayInt);
+        lexer
+            .keywords
+            .insert("DISPLAYstring".to_string(), TokenType::DisplayStr);
         lexer.keywords.insert("END".to_string(), TokenType::EOF);
-        
-        
-        
+        lexer.keywords.insert("IF".to_string(), TokenType::If);
+        lexer.keywords.insert("THEN".to_string(), TokenType::Then);
+        lexer.keywords.insert("ELSE".to_string(), TokenType::Else);
+        lexer
+            .keywords
+            .insert("END-IF".to_string(), TokenType::Endifelseblock);
+
         lexer
     }
 
@@ -122,12 +144,12 @@ impl<'a> Lexer<'a> {
 
         while let Some(ch) = self.source.as_mut().unwrap().next() {
             match ch {
-                '+' | '-' | '*' | '/' | '=' | '(' | ')' | ';' => {
+                '+' | '*' | '/' | '=' | '(' | ')' | ';' => {
                     self.handle_buffer(&mut buffer);
                     self.tokens.push(Token::newtok(
                         match ch {
                             '+' => TokenType::Plus,
-                            '-' => TokenType::Minus,
+
                             '*' => TokenType::Star,
                             '/' => TokenType::Slash,
                             '=' => TokenType::Equals,
@@ -149,6 +171,71 @@ impl<'a> Lexer<'a> {
                 ch if ch.is_whitespace() => {
                     self.handle_buffer(&mut buffer);
                 }
+
+                '-' =>  {
+                    if self.source.as_mut().unwrap().peek() == Some(&'I') && buffer == "END" {
+                        buffer.push(ch);
+                    } else {
+                        self.handle_buffer(&mut buffer);
+                        self.tokens.push(Token::newtok(
+                            TokenType::Minus,
+                            ch.to_string(),
+                            None,
+                            self.line,
+                            None,
+                        ));
+                    }
+                }
+
+
+                '<' | '>' => {
+                    self.handle_buffer(&mut buffer);
+                    let next_char = self.source.as_mut().unwrap().peek();
+                    match (ch, next_char) {
+                        ('<', Some(&'=')) => {
+                            self.source.as_mut().unwrap().next();
+                            self.tokens.push(Token::newtok(
+                                TokenType::LessThanOrEqual,
+                                "<=".to_string(),
+                                None,
+                                self.line,
+                                None,
+                            ));
+                        }
+                        ('>', Some(&'=')) => {
+                            self.source.as_mut().unwrap().next();
+                            self.tokens.push(Token::newtok(
+                                TokenType::GreaterThanOrEqual,
+                                ">=".to_string(),
+                                None,
+                                self.line,
+                                None,
+                            ));
+                        }
+                        ('<', _) => {
+                            self.tokens.push(Token::newtok(
+                                TokenType::LessThan,
+                                "<".to_string(),
+                                None,
+                                self.line,
+                                None,
+                            ));
+                        }
+                        ('>', _) => {
+                            self.tokens.push(Token::newtok(
+                                TokenType::GreaterThan,
+                                ">".to_string(),
+                                None,
+                                self.line,
+                                None,
+                            ));
+                        }
+                        _ => unreachable!(),
+                    }
+                }
+
+
+                
                 ch if ch.is_alphanumeric() || ch == '_' => buffer.push(ch),
                 _ => {
                     self.handle_buffer(&mut buffer);
@@ -168,8 +255,8 @@ impl<'a> Lexer<'a> {
                     let token_type = self.keywords.get(buffer).unwrap().clone();
                     let literal = Some(Literal::String(buffer.to_string()));
                     let var_type = match token_type {
-                        TokenType::int_var => Some(Type::Int),
-                        TokenType::str_var => Some(Type::Str),
+                        TokenType::IntVar => Some(Type::Int),
+                        TokenType::StrVar => Some(Type::Str),
                         _ => None,
                     };
                     self.tokens.push(Token::newtok(
@@ -237,6 +324,7 @@ impl<'a> Lexer<'a> {
         println!("Error: Unterminated string literal");
     }
 
+    
     pub fn print_tok(&mut self) {
         println!("{:#?}", self.tokens);
     }

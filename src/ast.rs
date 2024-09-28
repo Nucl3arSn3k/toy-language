@@ -3,13 +3,14 @@ use crate::token::TokenType;
 use crate::token::Type;
 
 #[derive(Debug, Clone)]
-pub enum ASTNode { //Enum with node types
+pub enum ASTNode {
+    //Enum with node types
     Program(Vec<ASTNode>),
     VariableDeclaration {
         identifier: String,
         initializer: Option<Box<ASTNode>>,
         line: u32,
-        var_type: Option<Type>
+        var_type: Option<Type>,
     },
     DisplayStatement(String, u32),
     DisplayIntStatement(String, u32),
@@ -28,6 +29,14 @@ pub enum ASTNode { //Enum with node types
     Identifier(String, u32),
     Number(String, u32),
     StringLiteral(String, u32),
+
+    IfStatement {
+        condition: Box<ASTNode>,
+        then_block: Vec<ASTNode>,
+        else_if_blocks: Vec<(Box<ASTNode>, Vec<ASTNode>)>,
+        else_block: Option<Vec<ASTNode>>,
+        line: u32,
+    },
 }
 
 impl ASTNode {
@@ -81,28 +90,24 @@ impl Parser {
     }
 
     fn statement(&mut self) -> Result<ASTNode, String> {
-        if self.match_token(&[TokenType::int_var]) {
-            self.int_variable_declaration()
-        }
-        else if self.match_token(&[TokenType::str_var]) {
-            self.str_variable_declaration()
-        }
-        else if self.match_token(&[TokenType::Display]) {
+        if self.match_token(&[TokenType::IntVar]) {
+            self.IntVariable_declaration()
+        } else if self.match_token(&[TokenType::StrVar]) {
+            self.StrVariable_declaration()
+        } else if self.match_token(&[TokenType::Display]) {
             self.display_statement()
-        }
-        else if self.match_token(&[TokenType::DisplayInt]) {
+        } else if self.match_token(&[TokenType::DisplayInt]) {
             self.display_int()
-        }
-        else if self.match_token(&[TokenType::DisplayStr]){
-
+        } else if self.match_token(&[TokenType::DisplayStr]) {
             self.display_string()
-        }
-         else {
+        } else if self.match_token(&[TokenType::If]) {
+            self.if_block()
+        } else {
             self.expression_statement()
         }
     }
 
-    fn int_variable_declaration(&mut self) -> Result<ASTNode, String> {
+    fn IntVariable_declaration(&mut self) -> Result<ASTNode, String> {
         let var_token = self.previous().clone();
         let identifier = self.consume(&TokenType::Identifier, "Expected identifier.")?;
 
@@ -120,12 +125,12 @@ impl Parser {
         Ok(ASTNode::VariableDeclaration {
             identifier: identifier.lexeme.clone(),
             initializer,
-            var_type:Some(Type::Int),
+            var_type: Some(Type::Int),
             line: var_token.line,
         })
     }
 
-    fn str_variable_declaration(&mut self) -> Result<ASTNode, String> {
+    fn StrVariable_declaration(&mut self) -> Result<ASTNode, String> {
         let var_token = self.previous().clone();
         let identifier = self.consume(&TokenType::Identifier, "Expected identifier.")?;
 
@@ -143,7 +148,7 @@ impl Parser {
         Ok(ASTNode::VariableDeclaration {
             identifier: identifier.lexeme.clone(),
             initializer,
-            var_type:Some(Type::Str),
+            var_type: Some(Type::Str),
             line: var_token.line,
         })
     }
@@ -161,7 +166,7 @@ impl Parser {
         ))
     }
 
-    fn display_int(&mut self) -> Result<ASTNode, String>{
+    fn display_int(&mut self) -> Result<ASTNode, String> {
         let display_token = self.previous().clone();
         let identifier = self.consume(&TokenType::Identifier, "Expected identifier.")?;
         self.consume(
@@ -172,12 +177,9 @@ impl Parser {
             identifier.lexeme.clone(),
             display_token.line,
         ))
-
-
     }
 
-
-    fn display_string(&mut self) -> Result<ASTNode,String>{
+    fn display_string(&mut self) -> Result<ASTNode, String> {
         let display_token = self.previous().clone();
         let identifier = self.consume(&TokenType::Identifier, "Expected identifier.")?;
         self.consume(
@@ -188,10 +190,10 @@ impl Parser {
             identifier.lexeme.clone(),
             display_token.line,
         ))
-
-
-
     }
+
+    
+
 
     fn expression_statement(&mut self) -> Result<ASTNode, String> {
         let identifier = self.consume(&TokenType::Identifier, "Expected identifier.")?;
@@ -220,6 +222,10 @@ impl Parser {
             TokenType::Minus,
             TokenType::Star,
             TokenType::Slash,
+            TokenType::LessThan,
+            TokenType::LessThanOrEqual,
+            TokenType::GreaterThan,
+            TokenType::GreaterThanOrEqual,
         ]) {
             let operator = self.previous().clone();
             let right = self.factor()?;
@@ -254,6 +260,55 @@ impl Parser {
                 self.peek().line
             ))
         }
+    }
+
+    fn if_block(&mut self) -> Result<ASTNode, String> {
+        let iftok = self.previous().clone();
+        
+        // Parse condition
+        let cond = self.factor()?;
+        self.consume(&TokenType::Then, "Expected 'THEN' after IF condition")?;
+        
+        // Parse then block
+        let i_block = self.block()?;
+        
+        // Parse optional else-if blocks
+        let mut else_if_blocks = Vec::new();
+        while self.match_token(&[TokenType::Elif]) {
+            let else_if_cond = self.factor()?;
+            self.consume(&TokenType::Then, "Expected 'THEN' after ELSE-IF condition")?;
+            let else_if_block = self.block()?;
+            else_if_blocks.push((Box::new(else_if_cond), else_if_block));
+        }
+        
+        // Parse optional else block
+        let el_block = if self.match_token(&[TokenType::Else]) {
+            Some(self.block()?)
+        } else {
+            None
+        };
+        
+        // Consume END-IF
+        self.consume(&TokenType::Endifelseblock, "Expected 'END-IF' to close block")?;
+        
+        Ok(ASTNode::IfStatement {
+            condition: Box::new(cond),
+            then_block: i_block,
+            else_if_blocks,
+            else_block: el_block,
+            line: iftok.line,
+        })
+    }
+
+    fn block(&mut self) -> Result<Vec<ASTNode>, String> {
+        let mut statements = Vec::new();
+        
+        while !self.check(&TokenType::Elif) && !self.check(&TokenType::Else) && !self.check(&TokenType::Endifelseblock) {
+            let statement = self.statement()?;
+            statements.push(statement);
+        }
+        
+        Ok(statements)
     }
 
     fn match_token(&mut self, types: &[TokenType]) -> bool {

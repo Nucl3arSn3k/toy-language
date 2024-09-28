@@ -104,6 +104,13 @@ impl CodeGenerator {
             ast::ASTNode::StringLiteral(value, line) => {
                 println!("String Literal: \"{}\" on line {}", value, line);
             }
+
+            ast::ASTNode::IfStatement { condition, then_block, else_if_blocks, else_block, line } =>{
+
+
+
+
+            }
         }
     }
 
@@ -199,13 +206,19 @@ impl CodeGenerator {
             ast::ASTNode::StringLiteral(value, _line) => {
                 self.c_code.push_str(&format!("\"{}\"", value));
             }
+            ast::ASTNode::IfStatement { condition, then_block, else_if_blocks, else_block, line } =>{
+
+
+
+                
+            }
         }
 
 
     }
     
     pub fn generate_c_file(&self) -> std::io::Result<()> {
-        let mut c_file = File::create("code.c")?;
+        let mut c_file = File::create("output/code.c")?;
         write!(c_file, "{}", self.c_code)?;
         Ok(())
     }

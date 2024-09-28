@@ -3,7 +3,7 @@ mod codegen;
 mod token;
 use std::fs;
 fn main() {
-    let program = fs::read_to_string("tests/testprogram.txt");
+    let program = fs::read_to_string("tests/testprogram.sco");
     match program {
         Ok(contents) => {
             let mut lexer = token::Lexer::new();
@@ -12,27 +12,37 @@ fn main() {
 
             println!("{:?}", tokens);
             let mut parser = ast::Parser::new(tokens);
-
+            /* 
             match parser.parse() {
                 Ok(ast) => {
-                    
-
                     // Create the CodeGen instance with the context
                     let mut code_gen = codegen::CodeGenerator::new();
 
                     //code_gen.generate(ast);
                     code_gen.generate_ir(ast);
                     let res = code_gen.generate_c_file();
-                }
 
+                    match res {
+                        Ok(a) => {
+                            println!("Codegen sucessfull {:?}", a);
+                        }
+
+                        Err(e) => {
+                            eprintln!("Generation error {}", e);
+                        }
+                    }
+                }
+               
                 Err(e) => {
-                    eprintln!("Parsing error {}",e);
+                    eprintln!("Parsing error {}", e);
                 }
             }
-            
+             */
         }
         Err(e) => eprintln!("Failed to read file: {}", e),
     }
+
+
 
     //let context = Context::create();
 }
