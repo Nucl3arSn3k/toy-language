@@ -1,3 +1,5 @@
+use std::boxed;
+
 use crate::token::Token;
 use crate::token::TokenType;
 use crate::token::Type;
@@ -63,21 +65,46 @@ impl ASTNode {
                 left.traverse(f);
                 right.traverse(f);
             }
-            ASTNode::IfStatement {condition,then_block,else_if_blocks,else_block,line} => {
-
+            ASTNode::IfStatement {
+                condition,
+                then_block,
+                else_if_blocks,
+                else_block,
+                line,
+            } => {
                 condition.traverse(f);
-                if then_block.is_empty(){
-
-
-                }
-                else{
-                    for x in then_block{
-
+                if then_block.is_empty() {
+                    println!("No then block")
+                } else {
+                    for x in then_block {
                         x.traverse(f);
                     }
                 }
-            },
 
+                if else_if_blocks.is_empty() {
+                    println!("No elif block")
+                } else {
+                    for (boxed_node, child_node) in else_if_blocks {
+                        boxed_node.traverse(f);
+
+                        for x in child_node {
+                            x.traverse(f);
+                        }
+                    }
+                }
+
+                match else_block {
+                    Some(elb) => {
+                        for x in elb {
+                            x.traverse(f);
+                        }
+                    },
+                    None => {
+                        // TODO: Implement specific behavior for when there's no else block
+                        // For now, do nothing
+                    },
+                }
+            }
 
             _ => {}
         }
@@ -208,9 +235,6 @@ impl Parser {
         ))
     }
 
-    
-
-
     fn expression_statement(&mut self) -> Result<ASTNode, String> {
         let identifier = self.consume(&TokenType::Identifier, "Expected identifier.")?;
         let equals_token = self.consume(&TokenType::Equals, "Expected '='.")?;
@@ -280,14 +304,14 @@ impl Parser {
 
     fn if_block(&mut self) -> Result<ASTNode, String> {
         let iftok = self.previous().clone();
-        
+
         // Parse condition
         let cond = self.factor()?;
         self.consume(&TokenType::Then, "Expected 'THEN' after IF condition")?;
-        
+
         // Parse then block
         let i_block = self.block()?;
-        
+
         // Parse optional else-if blocks
         let mut else_if_blocks = Vec::new();
         while self.match_token(&[TokenType::Elif]) {
@@ -296,17 +320,20 @@ impl Parser {
             let else_if_block = self.block()?;
             else_if_blocks.push((Box::new(else_if_cond), else_if_block));
         }
-        
+
         // Parse optional else block
         let el_block = if self.match_token(&[TokenType::Else]) {
             Some(self.block()?)
         } else {
             None
         };
-        
+
         // Consume END-IF
-        self.consume(&TokenType::Endifelseblock, "Expected 'END-IF' to close block")?;
-        
+        self.consume(
+            &TokenType::Endifelseblock,
+            "Expected 'END-IF' to close block",
+        )?;
+
         Ok(ASTNode::IfStatement {
             condition: Box::new(cond),
             then_block: i_block,
@@ -318,12 +345,15 @@ impl Parser {
 
     fn block(&mut self) -> Result<Vec<ASTNode>, String> {
         let mut statements = Vec::new();
-        
-        while !self.check(&TokenType::Elif) && !self.check(&TokenType::Else) && !self.check(&TokenType::Endifelseblock) {
+
+        while !self.check(&TokenType::Elif)
+            && !self.check(&TokenType::Else)
+            && !self.check(&TokenType::Endifelseblock)
+        {
             let statement = self.statement()?;
             statements.push(statement);
         }
-        
+
         Ok(statements)
     }
 

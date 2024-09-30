@@ -18,7 +18,7 @@ fn main() {
                 }
                 Err(e) => eprintln!("Failed to create file: {}", e),
             }
-            println!("{:?}", tokens);
+            //println!("{:?}", tokens);
             let mut parser = ast::Parser::new(tokens);
 
             parser.parse();
