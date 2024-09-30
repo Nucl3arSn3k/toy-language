@@ -108,8 +108,8 @@ impl<'a> Lexer<'a> {
         let mut lexer = Lexer {
             source: None,
             tokens: Vec::new(),
-            line: 1,
-            keywords: HashMap::new(),
+            line: 1, //Counts lines
+            keywords: HashMap::new(), //keeps track of lang rerseved words
             types: HashMap::new(),
         };
         lexer

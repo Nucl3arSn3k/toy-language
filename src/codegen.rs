@@ -108,7 +108,19 @@ impl CodeGenerator {
             ast::ASTNode::IfStatement { condition, then_block, else_if_blocks, else_block, line } =>{
 
 
+                match else_block{
 
+                    None =>{
+                        println!("If Statement:{:?} Then block{:?},elseif block{:?}  line{:?}",condition,then_block,else_if_blocks,line);
+                    }
+
+                    Some(_) => {
+
+                        println!("If Statement:{:?} Then block{:?},elseif block{:?} else block{:?} line{:?}",condition,then_block,else_if_blocks,else_block,line);
+                    }
+                }
+
+                
 
             }
         }
@@ -208,7 +220,19 @@ impl CodeGenerator {
             }
             ast::ASTNode::IfStatement { condition, then_block, else_if_blocks, else_block, line } =>{
 
+                /* 
+                self.c_code.push_str(&format!("if ({:?}) {{\n{:?}}}\n", condition, then_block));
+                if else_if_blocks.is_empty(){
 
+
+                }
+                else{
+
+
+                    self.c_code.push_str(string);
+                }
+
+                */
 
                 
             }

@@ -63,6 +63,22 @@ impl ASTNode {
                 left.traverse(f);
                 right.traverse(f);
             }
+            ASTNode::IfStatement {condition,then_block,else_if_blocks,else_block,line} => {
+
+                condition.traverse(f);
+                if then_block.is_empty(){
+
+
+                }
+                else{
+                    for x in then_block{
+
+                        x.traverse(f);
+                    }
+                }
+            },
+
+
             _ => {}
         }
     }
