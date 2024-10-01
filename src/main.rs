@@ -3,6 +3,8 @@ mod codegen;
 mod token;
 use std::fs;
 use std::io::Write;
+
+use ast::ASTNode;
 fn main() {
     let program = fs::read_to_string("tests/testprogram.sco");
     match program {
@@ -21,7 +23,21 @@ fn main() {
             //println!("{:?}", tokens);
             let mut parser = ast::Parser::new(tokens);
 
-            parser.parse();
+            let val = parser.parse();
+
+            let printnodes = |node: &ASTNode| {
+                println!("{:?}", node);
+            };
+            match val {
+                Ok(asts) => {
+                    asts.traverse(&printnodes);
+
+                }
+
+                Err(e) => {
+                    println!("Error returning AST {}",e);
+                }
+            }
             /*
             match parser.parse() {
                 Ok(ast) => {

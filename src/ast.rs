@@ -42,9 +42,7 @@ pub enum ASTNode {
 }
 
 impl ASTNode {
-    pub fn traverse<F>(&self, f: &F)
-    where
-        F: Fn(&ASTNode),
+    pub fn traverse<F>(&self, f: &F) where F: Fn(&ASTNode),
     {
         f(self);
         match self {
@@ -107,7 +105,7 @@ impl ASTNode {
             }
 
             _ => {}
-        }
+        }   
     }
 }
 pub struct Parser {
@@ -302,8 +300,11 @@ impl Parser {
         }
     }
 
-    fn if_block(&mut self) -> Result<ASTNode, String> {
+    fn if_block(&mut self) -> Result<ASTNode, String> { //if statement generation
         let iftok = self.previous().clone();
+        self.consume(&TokenType::LParen, "Expected '(' after IF")?;
+        //then in between these two tokens,the expression
+        self.consume(&TokenType::RParen, "Expected ) after expression")?;
 
         // Parse condition
         let cond = self.factor()?;
