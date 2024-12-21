@@ -171,6 +171,7 @@ impl Parser {
         })
     }
 
+    
     fn StrVariable_declaration(&mut self) -> Result<ASTNode, String> {
         let var_token = self.previous().clone();
         let identifier = self.consume(&TokenType::Identifier, "Expected identifier.")?;
@@ -196,7 +197,7 @@ impl Parser {
 
     fn display_statement(&mut self) -> Result<ASTNode, String> {
         let display_token = self.previous().clone();
-        let identifier = self.consume(&TokenType::Identifier, "Expected identifier.")?;
+        let identifier = self.consume(&TokenType::Identifier, "Expected identifier before display_statement.")?;
         self.consume(
             &TokenType::Semicolon,
             "Expected ';' after display statement.",
@@ -209,7 +210,7 @@ impl Parser {
 
     fn display_int(&mut self) -> Result<ASTNode, String> {
         let display_token = self.previous().clone();
-        let identifier = self.consume(&TokenType::Identifier, "Expected identifier.")?;
+        let identifier = self.consume(&TokenType::Identifier, "Expected identifier before int.")?;
         self.consume(
             &TokenType::Semicolon,
             "Expected ';' after display statement.",
@@ -222,7 +223,7 @@ impl Parser {
 
     fn display_string(&mut self) -> Result<ASTNode, String> {
         let display_token = self.previous().clone();
-        let identifier = self.consume(&TokenType::Identifier, "Expected identifier.")?;
+        let identifier = self.consume(&TokenType::Identifier, "Expected identifier before string.")?;
         self.consume(
             &TokenType::Semicolon,
             "Expected ';' after display statement.",
@@ -234,7 +235,7 @@ impl Parser {
     }
 
     fn expression_statement(&mut self) -> Result<ASTNode, String> {
-        let identifier = self.consume(&TokenType::Identifier, "Expected identifier.")?;
+        let identifier = self.consume(&TokenType::Identifier, "Expected identifier before exp.")?;
         let equals_token = self.consume(&TokenType::Equals, "Expected '='.")?;
         let expr = self.expression()?;
         self.consume(
