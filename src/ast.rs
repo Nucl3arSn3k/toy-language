@@ -42,7 +42,9 @@ pub enum ASTNode {
 }
 
 impl ASTNode {
-    pub fn traverse<F>(&self, f: &F) where F: Fn(&ASTNode),
+    pub fn traverse<F>(&self, f: &F)
+    where
+        F: Fn(&ASTNode),
     {
         f(self);
         match self {
@@ -96,16 +98,16 @@ impl ASTNode {
                         for x in elb {
                             x.traverse(f);
                         }
-                    },
+                    }
                     None => {
                         // TODO: Implement specific behavior for when there's no else block
                         // For now, do nothing
-                    },
+                    }
                 }
             }
 
             _ => {}
-        }   
+        }
     }
 }
 pub struct Parser {
@@ -171,7 +173,6 @@ impl Parser {
         })
     }
 
-    
     fn StrVariable_declaration(&mut self) -> Result<ASTNode, String> {
         let var_token = self.previous().clone();
         let identifier = self.consume(&TokenType::Identifier, "Expected identifier.")?;
@@ -197,7 +198,10 @@ impl Parser {
 
     fn display_statement(&mut self) -> Result<ASTNode, String> {
         let display_token = self.previous().clone();
-        let identifier = self.consume(&TokenType::Identifier, "Expected identifier before display_statement.")?;
+        let identifier = self.consume(
+            &TokenType::Identifier,
+            "Expected identifier before display_statement.",
+        )?;
         self.consume(
             &TokenType::Semicolon,
             "Expected ';' after display statement.",
@@ -223,7 +227,8 @@ impl Parser {
 
     fn display_string(&mut self) -> Result<ASTNode, String> {
         let display_token = self.previous().clone();
-        let identifier = self.consume(&TokenType::Identifier, "Expected identifier before string.")?;
+        let identifier =
+            self.consume(&TokenType::Identifier, "Expected identifier before string.")?; //This error throws at line 7
         self.consume(
             &TokenType::Semicolon,
             "Expected ';' after display statement.",
@@ -301,14 +306,23 @@ impl Parser {
         }
     }
 
-    fn if_block(&mut self) -> Result<ASTNode, String> { //if statement generation
+    fn if_block(&mut self) -> Result<ASTNode, String> {
+        //if statement generation
         let iftok = self.previous().clone();
+
         self.consume(&TokenType::LParen, "Expected '(' after IF")?;
+
+        // Parse the condition
+        let cond = self.expression()?;
+
+        // Consume the right parenthesis
+        self.consume(&TokenType::RParen, "Expected ')' after condition")?;
+        //self.consume(&TokenType::LParen, "Expected '(' after IF")?;
         //then in between these two tokens,the expression
-        self.consume(&TokenType::RParen, "Expected ) after expression")?;
+        //self.consume(&TokenType::RParen, "Expected ) after expression (ifblock)")?; //Ifblock version getting triggered
 
         // Parse condition
-        let cond = self.factor()?;
+        
         self.consume(&TokenType::Then, "Expected 'THEN' after IF condition")?;
 
         // Parse then block
