@@ -3,7 +3,8 @@ use std::boxed;
 use crate::token::Token;
 use crate::token::TokenType;
 use crate::token::Type;
-
+use std::fs;
+use std::io::Write;
 #[derive(Debug, Clone)]
 pub enum ASTNode {
     //Enum with node types
@@ -113,11 +114,12 @@ impl ASTNode {
 pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
+    nodehold: Vec<ASTNode>
 }
 
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
-        Parser { tokens, current: 0 }
+        Parser { tokens, current: 0 , nodehold: Vec::new()}
     }
 
     pub fn parse(&mut self) -> Result<ASTNode, String> {
@@ -127,12 +129,14 @@ impl Parser {
     fn program(&mut self) -> Result<ASTNode, String> {
         let mut statements = Vec::new();
         while !self.is_at_end() {
-            statements.push(self.statement()?);
+            let stmt = self.statement()?;
+            self.nodehold.push(stmt.clone());  // Add this line to store in nodehold
+            statements.push(stmt);
         }
         Ok(ASTNode::Program(statements))
     }
 
-    fn statement(&mut self) -> Result<ASTNode, String> {
+    fn statement(&mut self) -> Result<ASTNode, String> { 
         if self.match_token(&[TokenType::IntVar]) {
             self.IntVariable_declaration()
         } else if self.match_token(&[TokenType::StrVar]) {
@@ -401,7 +405,16 @@ impl Parser {
         if self.check(token_type) {
             Ok(self.advance())
         } else {
-            Err(format!("{} at line {}.", message, self.peek().line))
+            println!("Current AST contents dumped to file"); //dumps AST on error for debugging
+            match fs::File::create("ASTdump.txt") {
+                Ok(mut file) => {
+                    if let Err(e) = writeln!(file, "{:?}", self.nodehold) {
+                        eprintln!("Failed to write to file: {}", e);
+                    }
+                }
+                Err(e) => eprintln!("Failed to create file: {}", e),
+            }
+            Err(format!("{} at line {}.", message, self.peek().line)) //Dump AST contents here
         }
     }
 

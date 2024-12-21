@@ -23,7 +23,7 @@ fn main() {
             //println!("{:?}", tokens);
             let mut parser = ast::Parser::new(tokens);
 
-            let val = parser.parse();
+            let val = parser.parse(); //Result returned here
 
             let printnodes = |node: &ASTNode| {
                 println!("{:?}", node);
