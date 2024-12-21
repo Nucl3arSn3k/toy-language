@@ -136,7 +136,7 @@ impl Parser {
         Ok(ASTNode::Program(statements))
     }
 
-    fn statement(&mut self) -> Result<ASTNode, String> { 
+    fn statement(&mut self) -> Result<ASTNode, String> { //Basically matches on current token without consume. Potentially compress peek into the ad
         if self.match_token(&[TokenType::IntVar]) {
             self.IntVariable_declaration()
         } else if self.match_token(&[TokenType::StrVar]) {
@@ -401,11 +401,11 @@ impl Parser {
         self.previous()
     }
 
-    fn consume(&mut self, token_type: &TokenType, message: &str) -> Result<Token, String> {
-        if self.check(token_type) {
+    fn consume(&mut self, token_type: &TokenType, message: &str) -> Result<Token, String> { //Eat the token
+        if self.check(token_type) { //If it's legit,keep going
             Ok(self.advance())
         } else {
-            println!("Current AST contents dumped to file"); //dumps AST on error for debugging
+            println!("Current AST contents dumped to file"); //dumps AST on error for
             match fs::File::create("ASTdump.txt") {
                 Ok(mut file) => {
                     if let Err(e) = writeln!(file, "{:?}", self.nodehold) {
@@ -422,15 +422,15 @@ impl Parser {
         self.peek().token_type == TokenType::EOF
     }
 
-    fn peek(&self) -> &Token {
+    fn peek(&self) -> &Token { //Peeks at a token at the current index
         &self.tokens[self.current]
     }
 
-    fn previous(&self) -> Token {
+    fn previous(&self) -> Token { //Looks back one,clones it
         self.tokens[self.current - 1].clone()
     }
 
-    fn synchronize(&mut self) {
+    fn synchronize(&mut self) { //Synchronization function for error handling
         self.advance();
 
         while !self.is_at_end() {

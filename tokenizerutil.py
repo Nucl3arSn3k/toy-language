@@ -14,6 +14,9 @@ def main():
         output_file.write(x.strip() + '\n   ')
     os.remove("tokendump.txt")
 
+def ast_split():
+    
+
     
     
 
