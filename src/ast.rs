@@ -114,12 +114,16 @@ impl ASTNode {
 pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
-    nodehold: Vec<ASTNode>
+    nodehold: Vec<ASTNode>,
 }
 
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
-        Parser { tokens, current: 0 , nodehold: Vec::new()}
+        Parser {
+            tokens,
+            current: 0,
+            nodehold: Vec::new(),
+        }
     }
 
     pub fn parse(&mut self) -> Result<ASTNode, String> {
@@ -130,13 +134,14 @@ impl Parser {
         let mut statements = Vec::new();
         while !self.is_at_end() {
             let stmt = self.statement()?;
-            self.nodehold.push(stmt.clone());  // Add this line to store in nodehold
+            self.nodehold.push(stmt.clone()); // Add this line to store in nodehold
             statements.push(stmt);
         }
         Ok(ASTNode::Program(statements))
     }
 
-    fn statement(&mut self) -> Result<ASTNode, String> { //Basically matches on current token without consume. Potentially compress peek into the ad
+    fn statement(&mut self) -> Result<ASTNode, String> {
+        //Basically matches on current token without consume. Potentially compress peek into the ad
         if self.match_token(&[TokenType::IntVar]) {
             self.IntVariable_declaration()
         } else if self.match_token(&[TokenType::StrVar]) {
@@ -231,18 +236,35 @@ impl Parser {
 
     fn display_string(&mut self) -> Result<ASTNode, String> {
         let display_token = self.previous().clone();
-        let identifier =
-            self.consume(&TokenType::Identifier, "Expected identifier before string.")?; //This error throws at line 7
-        self.consume(
-            &TokenType::Semicolon,
-            "Expected ';' after display statement.",
-        )?;
-        Ok(ASTNode::DisplayStringStatement(
-            identifier.lexeme.clone(),
-            display_token.line,
-        ))
-    }
 
+        // Check if next token is an identifier or string literal
+        if self.check(&TokenType::Identifier) {
+            let identifier = self.advance();
+            self.consume(
+                &TokenType::Semicolon,
+                "Expected ';' after display statement.",
+            )?;
+            Ok(ASTNode::DisplayStringStatement(
+                identifier.lexeme.clone(),
+                display_token.line,
+            ))
+        } else if self.check(&TokenType::String) {
+            let string_literal = self.advance();
+            self.consume(
+                &TokenType::Semicolon,
+                "Expected ';' after display statement.",
+            )?;
+            Ok(ASTNode::DisplayStringStatement(
+                string_literal.lexeme.clone(),
+                display_token.line,
+            ))
+        } else {
+            Err(format!(
+                "Expected identifier or string literal after DISPLAYstring at line {}.",
+                self.peek().line
+            ))
+        }
+    }
     fn expression_statement(&mut self) -> Result<ASTNode, String> {
         let identifier = self.consume(&TokenType::Identifier, "Expected identifier before exp.")?;
         let equals_token = self.consume(&TokenType::Equals, "Expected '='.")?;
@@ -326,7 +348,7 @@ impl Parser {
         //self.consume(&TokenType::RParen, "Expected ) after expression (ifblock)")?; //Ifblock version getting triggered
 
         // Parse condition
-        
+
         self.consume(&TokenType::Then, "Expected 'THEN' after IF condition")?;
 
         // Parse then block
@@ -401,8 +423,10 @@ impl Parser {
         self.previous()
     }
 
-    fn consume(&mut self, token_type: &TokenType, message: &str) -> Result<Token, String> { //Eat the token
-        if self.check(token_type) { //If it's legit,keep going
+    fn consume(&mut self, token_type: &TokenType, message: &str) -> Result<Token, String> {
+        //Eat the token
+        if self.check(token_type) {
+            //If it's legit,keep going
             Ok(self.advance())
         } else {
             println!("Current AST contents dumped to file"); //dumps AST on error for
@@ -422,15 +446,18 @@ impl Parser {
         self.peek().token_type == TokenType::EOF
     }
 
-    fn peek(&self) -> &Token { //Peeks at a token at the current index
+    fn peek(&self) -> &Token {
+        //Peeks at a token at the current index
         &self.tokens[self.current]
     }
 
-    fn previous(&self) -> Token { //Looks back one,clones it
+    fn previous(&self) -> Token {
+        //Looks back one,clones it
         self.tokens[self.current - 1].clone()
     }
 
-    fn synchronize(&mut self) { //Synchronization function for error handling
+    fn synchronize(&mut self) {
+        //Synchronization function for error handling
         self.advance();
 
         while !self.is_at_end() {
