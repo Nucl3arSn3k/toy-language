@@ -38,10 +38,10 @@ impl CodeGenerator {
         Self::process_ast(ast)
     }
 
-    fn process_ast(node: ast::ASTNode) {
+    fn process_ast(node: ast::ASTNode) { //flashing lights, big city
         match node {
             ast::ASTNode::Program(statements) => {
-                println!("Program with {} statements", statements.len());
+                println!("Program with {} statements", statements.len()); 
                 for statement in statements {
                     Self::process_ast(statement);
                 }
