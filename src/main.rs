@@ -47,33 +47,9 @@ fn main() {
             }
 
             
-            /* 
-            match parser.parse() {
-                Ok(ast) => {
-                    // Create the CodeGen instance with the context
-                     //still 0 statements?
-                    //code_gen.generate_ir(ast);
-                    let res = code_gen.generate_c_file();
-
-                    match res {
-                        Ok(a) => {
-                            println!("Codegen sucessfull {:?}", a);
-                        }
-
-                        Err(e) => {
-                            eprintln!("Generation error {}", e);
-                        }
-                    }
-                }
-
-                Err(e) => {
-                    eprintln!("Parsing error {}", e);
-                }
-            }*/
-             
+            
         }
         Err(e) => eprintln!("Failed to read file: {}", e),
     }
 
-    //let context = Context::create();
 }
