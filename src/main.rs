@@ -30,8 +30,11 @@ fn main() {
             };
             match val {
                 Ok(asts) => {
+                    let ast_pretty = asts.clone(); //should be small enough to get away with a clone for now. Could use arc, but obnoxious refactor. Possibly if preformance tanks later.
                     asts.traverse(&printnodes);
-
+                    let mut code_gen = codegen::CodeGenerator::new();
+                    
+                    code_gen.generate(ast_pretty);
                 }
 
                 Err(e) => {
@@ -40,13 +43,11 @@ fn main() {
             }
 
             
-            
+            /* 
             match parser.parse() {
                 Ok(ast) => {
                     // Create the CodeGen instance with the context
-                    let mut code_gen = codegen::CodeGenerator::new();
-                    let ast_pretty = ast.clone(); //should be small enough to get away with a clone for now. Could use arc, but obnoxious refactor. Possibly if preformance tanks later.
-                    code_gen.generate(ast_pretty);
+                     //still 0 statements?
                     //code_gen.generate_ir(ast);
                     let res = code_gen.generate_c_file();
 
@@ -64,7 +65,7 @@ fn main() {
                 Err(e) => {
                     eprintln!("Parsing error {}", e);
                 }
-            }
+            }*/
              
         }
         Err(e) => eprintln!("Failed to read file: {}", e),
