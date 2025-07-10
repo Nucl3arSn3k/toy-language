@@ -18,6 +18,7 @@ pub enum ASTNode {
     DisplayStatement(String, u32),
     DisplayIntStatement(String, u32),
     DisplayStringStatement(String, u32),
+    DisplayStringVariable(String,u32),
     ExpressionStatement {
         expression: Box<ASTNode>,
         identifier: String,
@@ -244,7 +245,7 @@ impl Parser {
                 &TokenType::Semicolon,
                 "Expected ';' after display statement.",
             )?;
-            Ok(ASTNode::DisplayStringStatement(
+            Ok(ASTNode::DisplayStringVariable(
                 identifier.lexeme.clone(),
                 display_token.line,
             ))

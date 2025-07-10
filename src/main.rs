@@ -34,7 +34,11 @@ fn main() {
                     asts.traverse(&printnodes);
                     let mut code_gen = codegen::CodeGenerator::new();
                     
-                    code_gen.generate(ast_pretty);
+                    code_gen.generate_ir(ast_pretty);
+                    match code_gen.generate_c_file() {
+                        Ok(o) => println!("C source file generated!"),
+                        Err(e) => println!(" C source file gen failed with error {e}"),
+                    };
                 }
 
                 Err(e) => {

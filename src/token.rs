@@ -60,7 +60,7 @@ impl fmt::Display for Type {
 }
 
 #[derive(Debug, Clone)]
-enum Literal {
+pub enum Literal {
     Integer(i64),
     Float(f64),
     String(String),
@@ -72,7 +72,7 @@ enum Literal {
 pub struct Token {
     pub token_type: TokenType,
     pub lexeme: String,
-    literal: Option<Literal>,
+    pub literal: Option<Literal>,
     pub line: u32,
     pub var_type: Option<Type>,
 }
